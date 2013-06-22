@@ -5,8 +5,6 @@ from urllib2 import Request, urlopen
 from pyPdf import PdfFileWriter, PdfFileReader
 from StringIO import StringIO
 
-
-111480
 for id in range(98301, 111480):
 	url = u"http://a06.apps.paris.fr/a06/jsp/site/plugins/solr/modules/ods/DoDownload.jsp?id_document=1"+str(id)
 	writer = PdfFileWriter()
