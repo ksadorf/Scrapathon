@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for (( i=98301; i<=111480; i++ ))
+do
+	_file1="scrapathon/$i.pdf"
+	_file2="scrapathon_2/$i.txt"
+	pdf2txt $_file1 > $_file2
+done 
