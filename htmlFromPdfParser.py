@@ -3,7 +3,7 @@
 import requests
 import re
 from pyquery import PyQuery as pq
-
+import pickle
 
 class Rapport:
 	"""Classe contenant toutes les infos d'un rapport"""
@@ -12,12 +12,12 @@ class Rapport:
 	
 	def _regexpCheck_(self, inner):
 		inner=re.sub("\s\s+",' ',inner) #remove multiple space
-		regType='(?:Conseil )(Municipal|Général)'
+		regType='(?: )?(Municipal|G.n.ral)(?: )?'
 		regRap='(.*)(?:, rapporteur)'
-		regDate='(?:S.ance )(?:des )?(.*\d{4})'
+		regDate='(?:S.ance )(?:des|du )?(.*\d{4})'
 		_regId='(\d{4} \w{1,4}\.? \w*\ ?( \w)?(\/\d{4} \w{1,4}\.? \w*)*)'
 		__regId='(\d{4} \W{1,6}\.? \w*\ ? \w?(\/\d{4} \W{1,6}\.? \w*)*)'
-		regId='(\d{4} [A-Z0-9_]{1,6}\.? [^\/|-|\<|\:]*([\/|-] ?\d{4} [A-Z0-9_]{1,6}\.? [^\/|-]*)*)'
+		regId='(\d{4} [A-Z0-9_]{1,10}\.? [^\/|-|\<|\:]*([\/|-] ?\d{4} [A-Z0-9_]{1,6}\.? [^\/|-]*)*)'
 		res=re.search(regType,inner)
 		if res:
 			self._type_=res.group(1)
@@ -26,17 +26,25 @@ class Rapport:
 		if res:
 			tmp=re.search('et',res.group(1))
 			if tmp:
-				self._rapporteur_=res.group(1).split('et')
+				self._rapporteur_=re.split('et|,',res.group(1))
+				i=len(self._rapporteur_)
+				while i!=0:
+
+					elem=self._rapporteur_[i-1]
+					if (len(elem)<3 ):self._rapporteur_.remove(self._rapporteur_[i-1])
+					i=i-1
 			else:
-				self._rapporteur_=res.group(1)
+				self._rapporteur_=[res.group(1)]
 			return
 		
 		res=re.search(regDate,inner)
 		if res:
-			
-			tmp=re.search('(?:.*et )?(.*)',res.group(1))
-			self._date_=tmp.group(1)
+			self._date_=res.group(1)
+			tmp=re.search('(?: et )?(.*)',res.group(1))
+			if tmp :
+				self._date_=tmp.group(0).split(' et ')[-1]				
 			return
+		
 		if re.search('\-{2,}',inner) :
 			return
 
@@ -50,13 +58,21 @@ class Rapport:
 				if tmp :
 					self._id_=res.group(0).split('-')
 				else:
-					self._id_=res.group(0)
+					self._id_=[res.group(0)]
+			i=len(self._id_)
+			while i!=0:
+
+				elem=self._id_[i-1]
+				if (len(elem)<3 or re.search('[^A-Z0-9_ ]',elem) ):self._id_.remove(self._id_[i-1])
+				i=i-1
+			
 			return
 		
 
 
 	def __init__(self,id):
         	"""Un unique parametre le path du rapport"""
+        	self._pdfId_=id
 		self._type_=""
 		self._rapporteur_=[]
 		self._date_=''
@@ -100,18 +116,17 @@ class Rapport:
 		
 			
 			
-			
-for id in range(98301, 99404):
+tab=[]		
+for id in range(98301, 111479):
 	r=Rapport(id)
-	if not ( r.isSufficient()) and not (r._empty_==True) :
-		print 'Warning ' + id
+	if (r._empty_==True) :
+		print 'Warning ' , id
 	else:
-		if r._id_==[] and not (r._empty_==True):
-			print id
-		#print r._id_
-
-r=Rapport(98303)
-print r._id_
+		print id,'/111479'
+		tab.append(r)
+output=open('DelibConseil', 'w')
+pickle.dump(tab,output)
+print "FIN"
 
 
 #rapporteur
