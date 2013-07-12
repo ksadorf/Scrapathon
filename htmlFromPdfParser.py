@@ -128,8 +128,22 @@ output=open('DelibConseil', 'w')
 pickle.dump(tab,output)
 print "FIN"
 
+#usage to re-load picle object :
+# input = open('DelibConseil', 'r')
+# delib = pickle.load(input)
 
 #rapporteur
 #id
 #date
 #Municipale/general
+
+
+rapporteurs=dict()
+for row in delib:
+	for rap in row._rapporteur_:
+		rap_new = str(rap.encode('utf-8')).replace("<br/>","").replace("Mmes","").replace("M.","").replace("Mme","").replace("Madame","").replace("Monsieur","").strip()
+		if rap_new not in rapporteurs:
+		    rapporteurs[rap_new] = 0
+		rapporteurs[rap_new]= rapporteurs[rap_new]+1
+
+sorted(rapporteurs.items(), key=lambda x: x[1])
